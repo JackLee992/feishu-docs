@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feishu Docs"
+  short_description: "Read and create Feishu docs"
+  default_prompt: "Use $feishu-docs to read a Feishu doc or create a new wiki-backed page."
