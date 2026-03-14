@@ -4,10 +4,10 @@ Codex skill for reading, creating, and updating Feishu/Lark docx documents and w
 
 ## Install
 
-Use Codex skill installer with this repository:
+Use the Codex skill installer with this repository:
 
 ```powershell
-python "C:\Users\Jacklee\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" --repo JackLee992/feishu-docs --path . --name feishu-docs
+python install-skill-from-github.py --repo JackLee992/feishu-docs --path . --name feishu-docs
 ```
 
 ## Credentials
