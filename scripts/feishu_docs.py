@@ -21,6 +21,7 @@ from typing import Any
 
 BASE_URL = "https://open.feishu.cn/open-apis"
 MAX_CHILDREN_PER_APPEND = 50
+CHILDREN_PAGE_SIZE = 500
 
 
 class FeishuError(RuntimeError):
@@ -114,8 +115,31 @@ def split_text_blocks(text: str) -> list[dict[str, Any]]:
     return blocks
 
 
+def get_children_count(token: str, document_id: str) -> int:
+    total = 0
+    page_token: str | None = None
+    while True:
+        query: dict[str, Any] = {"page_size": CHILDREN_PAGE_SIZE}
+        if page_token:
+            query["page_token"] = page_token
+        result = request_json(
+            "GET",
+            f"/docx/v1/documents/{document_id}/blocks/{document_id}/children",
+            token=token,
+            query=query,
+        )
+        data = result["data"]
+        total += len(data.get("items", []))
+        if not data.get("has_more"):
+            return total
+        page_token = data.get("page_token")
+        if not page_token:
+            raise FeishuError("Missing page_token while paginating children.")
+
+
 def append_text(token: str, document_id: str, text: str) -> dict[str, Any]:
     blocks = split_text_blocks(text)
+    base_index = get_children_count(token, document_id)
     last: dict[str, Any] = {}
     for start in range(0, len(blocks), MAX_CHILDREN_PER_APPEND):
         batch = blocks[start : start + MAX_CHILDREN_PER_APPEND]
@@ -123,7 +147,7 @@ def append_text(token: str, document_id: str, text: str) -> dict[str, Any]:
             "POST",
             f"/docx/v1/documents/{document_id}/blocks/{document_id}/children",
             token=token,
-            payload={"index": start, "children": batch},
+            payload={"index": base_index + start, "children": batch},
         )
     return last
 
